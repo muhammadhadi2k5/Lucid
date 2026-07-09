@@ -1,6 +1,6 @@
 import random
 
-from obstacle import Obstacle
+from .obstacle import Obstacle
 
 
 class ObstacleSpawner:

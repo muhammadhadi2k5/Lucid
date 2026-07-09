@@ -1,2 +1,7 @@
 storyline.md
 retro_driving_game_master_prompt.md
+PROJECT_CONTEXT.md
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
