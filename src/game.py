@@ -1,6 +1,8 @@
 import pygame
 
 from .car import PlayerCar
+from .game_over_menu import GameOverMenu
+from .hud import HealthGauge
 from .menu import StartMenu
 from .obstacle_spawner import ObstacleSpawner
 from .pause_menu import PauseMenu
@@ -32,6 +34,8 @@ class Game:
         self.state = "menu"
         self.menu = StartMenu(SCREEN_WIDTH, SCREEN_HEIGHT)
         self.pause_menu = PauseMenu(SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.game_over_menu = GameOverMenu(SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.health_gauge = HealthGauge(80, SCREEN_HEIGHT - 80)
 
         self.fade_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
         self.fade_surface.fill((0, 0, 0))
@@ -102,6 +106,15 @@ class Game:
                     self._reset_race(start_faded_in=False)
                     self.state = "menu"
 
+            elif self.state == "game_over":
+                action = self.game_over_menu.handle_event(event)
+                if action == "restart":
+                    self._reset_race(start_faded_in=True)
+                    self.state = "playing"
+                elif action == "exit":
+                    self._reset_race(start_faded_in=False)
+                    self.state = "menu"
+
         if self.state == "playing":
             keys = pygame.key.get_pressed()
             self.player.handle_input(keys)
@@ -114,6 +127,10 @@ class Game:
         if self.state == "paused":
             self.pause_menu.update(dt)
             return  # frozen: nothing about the race itself advances
+
+        if self.state == "game_over":
+            self.game_over_menu.update(dt)
+            return
 
         self.road.update(dt)
         self.player.update(dt)
@@ -129,6 +146,10 @@ class Game:
             if self.obstacle_spawner.check_collision(self.player.get_rect(), self.road):
                 self.player.take_hit()
 
+        if self.player.health <= 0:
+            self.state = "game_over"
+            return
+
         if self.fade_alpha > 0:
             fade_per_second = 255 / self.FADE_IN_DURATION
             self.fade_alpha = max(0.0, self.fade_alpha - fade_per_second * dt)
@@ -138,10 +159,15 @@ class Game:
 
         if self.state == "menu":
             self.menu.draw(self.screen)
+        elif self.state == "game_over":
+            self.game_over_menu.draw(self.screen)
         else:
             self.road.draw(self.screen)
             self.obstacle_spawner.draw(self.screen, self.road)
             self.player.draw(self.screen)
+
+            segments = PlayerCar.MAX_HEALTH // PlayerCar.HIT_DAMAGE
+            self.health_gauge.draw(self.screen, self.player.health, PlayerCar.MAX_HEALTH, segments)
 
             if self.fade_alpha > 0:
                 self.fade_surface.set_alpha(int(self.fade_alpha))
