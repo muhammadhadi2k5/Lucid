@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://db2bceqj0wma3"]
+
+[ext_resource type="Script" uid="uid://cpjr3byue360r" path="res://scenes/race/road.gd" id="1_road"]
+
+[node name="Road" type="Node2D" unique_id=872534384]
+script = ExtResource("1_road")
